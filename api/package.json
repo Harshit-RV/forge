@@ -1,0 +1,27 @@
+{
+  "name": "forge-api",
+  "version": "0.1.0",
+  "main": "app.js",
+  "description": "Forge HTTP API",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "nodemon src/app.ts"
+  },
+  "dependencies": {
+    "@clerk/express": "^2.1.61",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "forge-sandbox": "file:../sandbox",
+    "mongoose": "^9.9.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^26.2.0",
+    "nodemon": "^3.1.10",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.0"
+  }
+}
