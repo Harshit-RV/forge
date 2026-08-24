@@ -4,6 +4,7 @@ import config from './config';
 import "dotenv/config";
 import mongoose from "mongoose";
 import { clerkMiddleware, createClerkClient } from "@clerk/express";
+import projectRoutes from './routes/projects.route';
 
 const app: Application = express();
 
@@ -26,8 +27,7 @@ export const clerkClient = createClerkClient({
 app.use(clerkMiddleware({ clerkClient }));
 
 // Routes
-// app.use('/', homeRoutes);
-// app.use('/projects', projectRoutes);
+app.use('/projects', projectRoutes);
 
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

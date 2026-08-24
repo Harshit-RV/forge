@@ -12,6 +12,8 @@ export interface ProjectDoc extends Project, Document {
   updatedAt: Date;
 }
 
+export type ProjectProps = Omit<Project, 'projectId'>;
+
 const projectSchema : Schema = new Schema<Project>(
   {
     projectId: { type: String, required: true, unique: true, default: () => new mongoose.Types.UUID().toString() },
