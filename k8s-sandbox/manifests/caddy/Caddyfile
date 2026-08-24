@@ -1,0 +1,7 @@
+{
+	admin localhost:2019
+}
+
+http://*.forge.harshitrv.com {
+	reverse_proxy {http.request.host.labels.3}.forge.svc.cluster.local:80
+}

@@ -1,0 +1,23 @@
+{
+  "name": "k8s-sandbox",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "setup": "./scripts/setup.sh",
+    "reset": "./scripts/reset.sh",
+    "smoke": "tsx scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@kubernetes/client-node": "^2.0.0",
+    "tar": "^7.5.22"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.0"
+  }
+}

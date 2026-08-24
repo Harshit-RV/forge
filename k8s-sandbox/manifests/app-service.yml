@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-__PROJECT_ID__
+  namespace: forge
+  labels:
+    k8s-sandbox.dev/project-id: __PROJECT_ID__
+spec:
+  type: ClusterIP
+  selector:
+    k8s-sandbox.dev/project-id: __PROJECT_ID__
+  ports:
+    - name: http
+      port: 80
+      targetPort: __TARGET_PORT__
+      protocol: TCP

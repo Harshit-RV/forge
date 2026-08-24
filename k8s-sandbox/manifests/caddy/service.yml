@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: caddy
+  namespace: forge
+  labels:
+    k8s-sandbox.dev/role: edge
+spec:
+  type: LoadBalancer
+  selector:
+    k8s-sandbox.dev/role: edge
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP

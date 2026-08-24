@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-__PROJECT_ID__
+  namespace: forge
+  labels:
+    k8s-sandbox.dev/project-id: __PROJECT_ID__
+spec:
+  automountServiceAccountToken: false
+  containers:
+    - name: react-app-container
+      image: node:22
+      command: ["sleep", "infinity"]
+      workingDir: /workspace
+      volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+  volumes:
+    - name: workspace
+      emptyDir: {}

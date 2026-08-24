@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caddy
+  namespace: forge
+  labels:
+    k8s-sandbox.dev/role: edge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-sandbox.dev/role: edge
+  template:
+    metadata:
+      labels:
+        k8s-sandbox.dev/role: edge
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: caddy
+          image: caddy:2
+          command:
+            - caddy
+          args:
+            - run
+            - --config
+            - /etc/caddy/Caddyfile
+            - --adapter
+            - caddyfile
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: caddy-config
+              mountPath: /etc/caddy
+              readOnly: true
+      volumes:
+        - name: caddy-config
+          configMap:
+            name: caddy-config
+            items:
+              - key: Caddyfile
+                path: Caddyfile
