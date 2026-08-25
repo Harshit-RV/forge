@@ -9,6 +9,33 @@ export type Sandbox = {
   previewUrl: string;
 };
 
+export type SandboxState = 'STOPPED' | 'CREATING' | 'RUNNING' | 'FAILED';
+
+export type SandboxStatus = {
+  state: SandboxState;
+  previewUrl: string | null;
+};
+
+// Derived from the cluster, never stored.
+export async function status(projectId: string): Promise<SandboxStatus> {
+  const pod = await K8Pod.read(podNameFor(projectId));
+  if (!pod) return { state: 'STOPPED', previewUrl: null };
+
+  const phase = pod.status?.phase;
+
+  if (phase === 'Failed') return { state: 'FAILED', previewUrl: null };
+  if (phase === 'Succeeded') return { state: 'STOPPED', previewUrl: null };
+
+  if (phase === 'Running') {
+    const ready = await K8Service.hasReadyEndpoints(serviceNameFor(projectId));
+    return ready
+      ? { state: 'RUNNING', previewUrl: previewUrl(projectId) }
+      : { state: 'CREATING', previewUrl: null };
+  }
+
+  return { state: 'CREATING', previewUrl: null };
+}
+
 export async function destroy(projectId: string): Promise<void> {
   await K8Service.delete(serviceNameFor(projectId));
   await K8Pod.delete(podNameFor(projectId));

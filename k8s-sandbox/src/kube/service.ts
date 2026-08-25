@@ -16,6 +16,17 @@ class K8Service {
     return name;
   }
   
+  static async hasReadyEndpoints(name: string): Promise<boolean> {
+    const core = getCore();
+    try {
+      const endpoints = await core.readNamespacedEndpoints({ name, namespace: NAMESPACE });
+      return endpoints.subsets?.some((subset) => (subset.addresses?.length ?? 0) > 0) ?? false;
+    } catch (error) {
+      if (isNotFound(error)) return false;
+      throw error;
+    }
+  }
+
   static async waitForEndpoints(name: string, timeoutMs = 30_000): Promise<void> {
     const core = getCore();
     const deadline = Date.now() + timeoutMs;

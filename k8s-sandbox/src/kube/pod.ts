@@ -13,6 +13,16 @@ class K8Pod {
     return name;
   }
   
+  static async read(name: string): Promise<V1Pod | null> {
+    const core = getCore();
+    try {
+      return await core.readNamespacedPod({ name, namespace: NAMESPACE });
+    } catch (error) {
+      if (isNotFound(error)) return null;
+      throw error;
+    }
+  }
+
   static async waitForRunning(name: string, timeoutMs = 180_000): Promise<void> {
     const core = getCore();
     const deadline = Date.now() + timeoutMs;
