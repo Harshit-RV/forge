@@ -1,13 +1,17 @@
 import express from 'express';
 import { ProjectProps } from '../models/Project.model';
-import { isValidObjectId } from 'mongoose';
-import { authed, requireUser } from '../middleware/require-user';
+import { authed, AuthedRequest, requireUser } from '../middleware/require-user';
 import ProjectService from '../services/project.service';
 
 const router = express.Router();
 router.use(requireUser);
 
-// Create a new project
+function projectId(req: AuthedRequest) {
+  const { projectId } = req.params;
+  return typeof projectId === 'string' ? projectId : undefined;
+}
+
+// Create a new project and provision its sandbox
 router.post('/create', authed(async (req, res) => {
   try {
     const { title, subtitle } = req.body;
@@ -18,12 +22,65 @@ router.post('/create', authed(async (req, res) => {
       subtitle: subtitle ?? null
     };
 
-    const projectDoc = await ProjectService.createNewProject(newProject);
+    const project = await ProjectService.createNewProject(newProject);
 
-    return res.status(201).json(projectDoc);
+    return res.status(201).json(project.toObject());
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'Something went wrong' });
+  }
+}));
+
+
+router.post('/:projectId/heartbeat', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  await ProjectService.heartbeat(id);
+  return res.json({ ok: true });
+}));
+
+
+// Live sandbox state, derived from the cluster
+router.get('/:projectId/status', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  try {
+    const status = await ProjectService.getStatus(id);
+    return res.json(status);
+  } catch (err) {
+    console.log(err);
+    return res.status(502).json({ error: 'Could not reach the cluster' });
+  }
+}));
+
+
+// Provision a sandbox for this project
+router.post('/:projectId/start', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  try {
+    const status = await ProjectService.startSandbox(id);
+    return res.json(status);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'Could not start sandbox' });
+  }
+}));
+
+
+router.post('/:projectId/stop', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  try {
+    const status = await ProjectService.stopSandbox(id);
+    return res.json(status);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'Could not stop sandbox' });
   }
 }));
 
@@ -41,28 +98,37 @@ router.get('/list/user', authed(async (req, res) => {
 }));
 
 
-// Get project by ID
-router.get('/:id', authed(async (req, res) => {
+// Get project by projectId
+router.get('/:projectId', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
   try {
-    const { id } = req.params;
+    const project = await ProjectService.getOwnedProject(id, req.userId);
 
-    if (typeof id !== 'string' || !isValidObjectId(id)) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    const project = await ProjectService.getProjectById(id);
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (project.userId !== req.userId) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    return res.json(project);
+    return res.json(project.toObject());
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: 'Something went wrong' });
+  }
+}));
+
+
+// Delete the project and destroy its sandbox
+router.delete('/:projectId', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  try {
+    await ProjectService.deleteProject(id);
+    return res.json({ ok: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Could not delete project' });
   }
 }));
 

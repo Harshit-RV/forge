@@ -13,7 +13,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^5.1.0",
-    "forge-sandbox": "file:../sandbox",
+    "k8s-sandbox": "file:../k8s-sandbox",
     "mongoose": "^9.9.3"
   },
   "devDependencies": {

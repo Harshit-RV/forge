@@ -5,6 +5,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import { clerkMiddleware, createClerkClient } from "@clerk/express";
 import projectRoutes from './routes/projects.route';
+import { startSandboxReaper } from './services/sandbox-idle';
 
 const app: Application = express();
 
@@ -16,8 +17,14 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ ok: true, service: "forge-api" });
 });
 
-// Connect to MongoDB
-mongoose.connect(config.mongoURI);
+mongoose
+  .connect(config.mongoURI)
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch((err) => {
+    console.error("MongoDB connection failed:", err);
+  });
 
 export const clerkClient = createClerkClient({ 
   secretKey: config.clerkSecretKey, 
@@ -39,5 +46,6 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 const PORT = Number(process.env.PORT) || 8080;
 
 app.listen(PORT, "0.0.0.0", () => {
+  startSandboxReaper();
   console.log(`Server running on port ${PORT}`);
 });

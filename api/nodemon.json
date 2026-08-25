@@ -1,5 +1,5 @@
 {
-  "watch": ["src", "../sandbox/src"],
+  "watch": ["src", "../k8s-sandbox/src"],
   "ext": "ts",
   "ignore": ["node_modules"],
   "exec": "tsx src/app.ts",
