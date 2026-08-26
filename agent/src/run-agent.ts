@@ -1,13 +1,17 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { AgentBounds, AgentEvents, AgentRunSummary, AgentSandbox, StopReason } from "./types";
+import { AgentBounds, AgentChatMessage, AgentEvents, AgentRunSummary, AgentSandbox, StopReason } from "./types";
 import config, { AGENT_DEFAULT_BOUNDS, MODEL } from "./config";
 import { generateText, stepCountIs } from "ai";
 import { SYSTEM_PROMPT } from "./prompt";
 import { createTools } from "./tools/tools";
 
+
 export type RunAgentOptions = {
   sandbox: AgentSandbox;
-  prompt: string;
+  // Multi-turn chat history. Preferred over `prompt`
+  messages?: AgentChatMessage[];
+  // use only when `messages` is empty
+  prompt?: string;
   // apiKey?: string;
   // model?: string;
   bounds?: Partial<AgentBounds>
@@ -15,9 +19,20 @@ export type RunAgentOptions = {
   signal?: AbortSignal;
 }
 
+function resolveMessages(options: RunAgentOptions): AgentChatMessage[] {
+  if (options.messages != null && options.messages.length > 0) {
+    return options.messages;
+  }
+  if (options.prompt != null && options.prompt !== '') {
+    return [{ role: 'user', content: options.prompt }];
+  }
+  throw new Error('runAgent requires messages or prompt');
+}
+
 export async function runAgent(options: RunAgentOptions): Promise<AgentRunSummary> {
   
   const startedAt = Date.now();
+  const messages = resolveMessages(options);
   
   let timedOut = false;
   const controller = new AbortController();
@@ -48,7 +63,7 @@ export async function runAgent(options: RunAgentOptions): Promise<AgentRunSummar
     const result = await generateText({
       model: anthropic(MODEL),
       instructions: SYSTEM_PROMPT,
-      prompt: options.prompt,
+      messages,
       tools: createTools(options.sandbox),
       stopWhen: stepCountIs(AGENT_DEFAULT_BOUNDS.maxIterations),
       

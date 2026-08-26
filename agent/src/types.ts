@@ -83,3 +83,8 @@ export type AgentRunSummary = {
   durationMs: number;
   finalText: string;
 };
+
+export type AgentChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};

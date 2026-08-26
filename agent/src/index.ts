@@ -15,4 +15,5 @@ export type {
   TokenUsage,
   ToolCall,
   ToolResult,
+  AgentChatMessage,
 } from './types';

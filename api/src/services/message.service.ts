@@ -1,6 +1,7 @@
 import MessageModel, {
   type MessageDoc,
 } from '../models/message/Message.model';
+import type { TextMessagePayload } from '../models/message/textMessage.schema';
 import ProjectService from './project.service';
 
 class MessageService {
@@ -14,6 +15,15 @@ class MessageService {
     const items = await MessageModel.find({ projectId }).sort({ createdAt: 1 });
 
     return items;
+  };
+
+  static listTextMessages = async (projectId: string): Promise<TextMessagePayload[]> => {
+    const docs = await MessageModel.find({
+      projectId,
+      type: 'TEXT_MESSAGE',
+    }).sort({ createdAt: 1 }).lean();
+
+    return docs.flatMap((doc) => (doc.textMessage ? [doc.textMessage] : []));
   };
 
   static insertUserTextMessage = async ( projectId: string, content: string ) : Promise<MessageDoc> => {

@@ -78,12 +78,23 @@ class AgentRunService {
 
     await patchRun({ status: 'WORKING', startedAt: new Date() });
 
+    const textMessages = await MessageService.listTextMessages(projectId);
+    const messages = textMessages.map((message) => ({
+      role: message.role === 'agent' ? ('assistant' as const) : ('user' as const),
+      content: message.content,
+    }));
+
+    // Fallback: history should already include this turn; keep a non-empty prompt if it doesn't.
+    if (messages.length === 0) {
+      messages.push({ role: 'user', content });
+    }
+
     const sandbox = createSandboxAdapter(projectId);
 
     try {
       await runAgent({
         sandbox,
-        prompt: content,
+        messages,
         signal,
         on: createAgentEventHandlers({ projectId, runId, emit, patchRun }),
       });

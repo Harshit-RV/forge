@@ -111,8 +111,13 @@ async function main() {
   // setTimeout(() => ac.abort(), 2000); // abort mid-run
   const summary = await runAgent({
     sandbox,
-    prompt:
-      'In /workspace/src/App.tsx, change the heading from Hello to Hello Forge using edit_file (read the file first). Then run_command with "npm test". Summarize what you did.',
+    messages: [
+      {
+        role: 'user',
+        content:
+          'In /workspace/src/App.tsx, change the heading from Hello to Hello Forge using edit_file (read the file first). Then run_command with "npm test". Summarize what you did.',
+      },
+    ],
     bounds: { maxIterations: 10 },
     on: {
       onToolCall: (c) => console.log('[tool_call]', c.name, c.args),
