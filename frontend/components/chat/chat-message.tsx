@@ -1,4 +1,5 @@
 import type { TextMessagePayload } from "@/lib/types";
+import { MarkdownContent } from "@/components/chat/markdown-content";
 
 export function ChatMessage({
   textMessage,
@@ -8,7 +9,7 @@ export function ChatMessage({
   if (textMessage.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] rounded-2xl bg-muted px-3.5 py-2 text-sm whitespace-pre-wrap">
+        <div className="chat-user-bubble max-w-[88%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap">
           {textMessage.content}
         </div>
       </div>
@@ -16,9 +17,11 @@ export function ChatMessage({
   }
 
   return (
-    <div className="flex gap-2.5">
-      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />
-      <p className="flex-1 text-sm whitespace-pre-wrap">{textMessage.content}</p>
+    <div className="space-y-1">
+      <p className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        Forge
+      </p>
+      <MarkdownContent content={textMessage.content} />
     </div>
   );
 }
