@@ -8,17 +8,23 @@ import { StatusBadge } from "@/components/status-badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSandboxControls } from "@/hooks/use-sandbox";
 import type { Project, SandboxState } from "@/lib/types";
+import type { useSandboxControls } from "@/hooks/use-sandbox";
+
+type SandboxControls = ReturnType<typeof useSandboxControls>;
 
 export function WorkspaceHeader({
   project,
   state,
+  controls,
+  starting,
 }: {
   project: Project;
   state?: SandboxState;
+  controls: SandboxControls;
+  starting?: boolean;
 }) {
-  const { start, stop } = useSandboxControls(project.projectId);
+  const { start, stop } = controls;
   const isRunning = state === "RUNNING";
 
   async function toggle() {
@@ -45,7 +51,9 @@ export function WorkspaceHeader({
         <span className="truncate font-mono text-sm font-medium">
           {project.title ?? "Untitled project"}
         </span>
-        {state ? (
+        {starting ? (
+          <StatusBadge state="CREATING" />
+        ) : state ? (
           <StatusBadge state={state} />
         ) : (
           <Skeleton className="h-5 w-20 rounded-full" />
@@ -57,7 +65,7 @@ export function WorkspaceHeader({
           variant="outline"
           size="sm"
           disabled={
-            !state ||
+            starting ||
             state === "CREATING" ||
             start.isPending ||
             stop.isPending

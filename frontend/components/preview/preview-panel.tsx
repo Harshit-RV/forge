@@ -94,6 +94,16 @@ function PreviewBody({
   error?: Error | null;
   reloadKey: number;
 }) {
+  if (isLoading) {
+    return (
+      <PreviewNotice
+        icon={<Loader2Icon className="size-5 animate-spin" />}
+        title="Starting sandbox"
+        detail="Waiting for the pod and dev server to come up."
+      />
+    );
+  }
+
   if (error) {
     return (
       <PreviewNotice
@@ -108,7 +118,7 @@ function PreviewBody({
     );
   }
 
-  if (isLoading || !state || state === "CREATING") {
+  if (!state || state === "CREATING") {
     return (
       <PreviewNotice
         icon={<Loader2Icon className="size-5 animate-spin" />}

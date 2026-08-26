@@ -9,6 +9,8 @@ export interface Project {
 }
 
 export type CreateProjectInput = {
+  /** Required. Saved as the first chat message and starts the agent run. */
+  prompt: string;
   title?: string;
   subtitle?: string;
 };

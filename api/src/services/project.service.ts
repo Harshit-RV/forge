@@ -8,10 +8,15 @@ import {
 import { touchSandbox } from "./sandbox-idle";
 
 class ProjectService {
+  static createProjectRecord = async ( args: ProjectProps ): Promise<ProjectDoc> => {
+    return new Project({ ...args }).save();
+  };
+
   static createNewProject = async (
     args: ProjectProps
   ): Promise<ProjectDoc> => {
-    const project = await new Project({ ...args }).save();
+    const project = await this.createProjectRecord(args);
+    
     try {
       await createSandbox(project.projectId);
       await touchSandbox(project.projectId);

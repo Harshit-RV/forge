@@ -14,17 +14,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CodePanel } from "@/components/workspace/code-panel";
 import { WorkspaceHeader } from "@/components/workspace/workspace-header";
+import { useEnsureSandbox } from "@/hooks/use-ensure-sandbox";
 import { useHeartbeat } from "@/hooks/use-heartbeat";
 import { useProject } from "@/hooks/use-projects";
-import { useSandboxStatus } from "@/hooks/use-sandbox";
+import { useSandboxControls, useSandboxStatus } from "@/hooks/use-sandbox";
 
 export function Workspace({ projectId }: { projectId: string }) {
   const { data: project, isLoading, error } = useProject(projectId);
+  const controls = useSandboxControls(projectId);
+  const { isPending: ensuringSandbox } = useEnsureSandbox(projectId, !!project);
+  const startingSandbox = ensuringSandbox || controls.start.isPending;
   const {
     data: sandbox,
     isPending: sandboxPending,
     error: sandboxError,
-  } = useSandboxStatus(projectId, !!project);
+  } = useSandboxStatus(projectId, !!project && !startingSandbox);
 
   useHeartbeat(projectId, sandbox?.state === "RUNNING");
 
@@ -54,11 +58,16 @@ export function Workspace({ projectId }: { projectId: string }) {
 
   return (
     <div className="flex h-dvh flex-col">
-      <WorkspaceHeader project={project} state={sandbox?.state} />
+      <WorkspaceHeader
+        project={project}
+        state={sandbox?.state}
+        controls={controls}
+        starting={startingSandbox}
+      />
 
       <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize="38%" minSize="25%">
-          <ChatPanel projectId={projectId} state={sandbox?.state} />
+          <ChatPanel projectId={projectId} />
         </ResizablePanel>
 
         <ResizableHandle />
@@ -82,8 +91,8 @@ export function Workspace({ projectId }: { projectId: string }) {
               <PreviewPanel
                 previewUrl={sandbox?.previewUrl ?? null}
                 state={sandbox?.state}
-                isLoading={sandboxPending && !sandbox}
-                error={sandboxError}
+                isLoading={startingSandbox || (sandboxPending && !sandbox)}
+                error={startingSandbox ? null : sandboxError}
               />
             </TabsContent>
             <TabsContent value="code" className="min-h-0">

@@ -10,6 +10,7 @@ export const sandboxKeys = {
 
 const POLL_MS = 3000;
 
+/** Live cluster status only — never decide start/stop from stale cache alone. */
 export function useSandboxStatus(projectId: string, enabled = true) {
   const client = useApi();
 
@@ -18,6 +19,7 @@ export function useSandboxStatus(projectId: string, enabled = true) {
     queryFn: () => client.projects.status(projectId),
     enabled: enabled && !!projectId,
     staleTime: 0,
+    refetchOnMount: "always",
     refetchInterval: (query) =>
       query.state.data?.state === "CREATING" ? POLL_MS : false,
   });
@@ -27,20 +29,19 @@ export function useSandboxControls(projectId: string) {
   const client = useApi();
   const queryClient = useQueryClient();
 
-  const onSuccess = (status: SandboxStatus) => {
+  const syncStatus = (status: SandboxStatus) => {
     queryClient.setQueryData(sandboxKeys.status(projectId), status);
   };
 
   return {
     start: useMutation({
-      mutationFn: () => client.projects.start(projectId),
-      onMutate: () => {
-        queryClient.setQueryData<SandboxStatus>(sandboxKeys.status(projectId), {
-          state: "CREATING",
-          previewUrl: null,
+      mutationFn: async () => {
+        await queryClient.cancelQueries({
+          queryKey: sandboxKeys.status(projectId),
         });
+        return client.projects.ensureSandbox(projectId);
       },
-      onSuccess,
+      onSuccess: syncStatus,
       onError: () => {
         void queryClient.invalidateQueries({
           queryKey: sandboxKeys.status(projectId),
@@ -49,7 +50,12 @@ export function useSandboxControls(projectId: string) {
     }),
     stop: useMutation({
       mutationFn: () => client.projects.stop(projectId),
-      onSuccess,
+      onSuccess: syncStatus,
+      onError: () => {
+        void queryClient.invalidateQueries({
+          queryKey: sandboxKeys.status(projectId),
+        });
+      },
     }),
   };
 }

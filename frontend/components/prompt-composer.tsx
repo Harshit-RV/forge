@@ -24,11 +24,10 @@ export function PromptComposer() {
     if (!task || createProject.isPending) return;
 
     try {
-      const project = await createProject.mutateAsync({
-        title: task.slice(0, 60),
-        subtitle: task,
+      const projectId = await createProject.mutateAsync({
+        prompt: task,
       });
-      router.push(`/projects/${project.projectId}`);
+      router.push(`/projects/${projectId}`);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Could not create project"

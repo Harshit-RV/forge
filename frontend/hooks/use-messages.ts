@@ -16,6 +16,25 @@ function upsertMessage(list: Message[], message: Message): Message[] {
   return next;
 }
 
+const ACTIVE_RUN_STATUSES = new Set([
+  "QUEUED",
+  "PROVISIONING",
+  "WORKING",
+]);
+
+const POLL_MS = 2000;
+
+function hasActiveRun(messages: Message[] | undefined): boolean {
+  return (
+    messages?.some(
+      (message) =>
+        message.type === "RUN" &&
+        message.run != null &&
+        ACTIVE_RUN_STATUSES.has(message.run.status)
+    ) ?? false
+  );
+}
+
 export function useMessages(projectId: string) {
   const client = useApi();
 
@@ -23,6 +42,9 @@ export function useMessages(projectId: string) {
     queryKey: messageKeys.list(projectId),
     queryFn: () => client.messages.list(projectId),
     enabled: !!projectId,
+    // Backup if the create NDJSON stream is interrupted by navigation quirks.
+    refetchInterval: (query) =>
+      hasActiveRun(query.state.data) ? POLL_MS : false,
   });
 }
 

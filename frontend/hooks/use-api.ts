@@ -13,8 +13,10 @@ export function useApi() {
   return useMemo(
     () => ({
       projects: {
-        create: async (input: CreateProjectInput) =>
-          projectsApi.create(await getToken(), input),
+        create: async (
+          input: CreateProjectInput,
+          onMessage: (message: Message) => void
+        ) => projectsApi.create(await getToken(), input, onMessage),
         list: async () => projectsApi.list(await getToken()),
         get: async (projectId: string) =>
           projectsApi.get(await getToken(), projectId),
@@ -22,6 +24,8 @@ export function useApi() {
           projectsApi.remove(await getToken(), projectId),
         heartbeat: async (projectId: string) =>
           projectsApi.heartbeat(await getToken(), projectId),
+        ensureSandbox: async (projectId: string) =>
+          projectsApi.ensureSandbox(await getToken(), projectId),
         status: async (projectId: string) =>
           projectsApi.status(await getToken(), projectId),
         start: async (projectId: string) =>

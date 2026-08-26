@@ -1,11 +1,11 @@
 import express from 'express';
-import { ProjectProps } from '../models/Project.model';
 import { authed, AuthedRequest, requireUser } from '../middleware/require-user';
 
 import MessageService from '../services/message.service';
 import ProjectService from '../services/project.service';
-import type { MessageDoc } from '../models/message/Message.model';
 import AgentRunService, { AgentRunConflictError, AgentRunNotFoundError } from '../services/agent-run';
+import { beginNdjsonMessageStream } from '../utils/ndjson-stream';
+import Helper from '../utils/helper.util';
 
 const router = express.Router();
 router.use(requireUser);
@@ -15,23 +15,40 @@ function projectId(req: AuthedRequest) {
   return typeof projectId === 'string' ? projectId : undefined;
 }
 
-// Create a new project and provision its sandbox
+// Create project + run the agent (which provisions sandbox as well); stream Message docs as NDJSON.
 router.post('/create', authed(async (req, res) => {
   try {
-    const { title, subtitle } = req.body;
+    const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';
+    if (!prompt) {
+      return res.status(400).json({ error: 'prompt is required' });
+    }
 
-    const newProject: ProjectProps = {
+    const project = await ProjectService.createProjectRecord({
       userId: req.userId,
-      title: title ?? null,
-      subtitle: subtitle ?? null
-    };
+      title: Helper.optionalString(req.body?.title),
+      subtitle: Helper.optionalString(req.body?.subtitle),
+    });
 
-    const project = await ProjectService.createNewProject(newProject);
+    const stream = beginNdjsonMessageStream(req, res);
 
-    return res.status(201).json(project.toObject());
+    try {
+      await AgentRunService.streamMessageAndRun({
+        projectId: project.projectId,
+        userId: req.userId,
+        content: prompt,
+        signal: stream.signal,
+        emit: stream.emit,
+      });
+    } catch (err) {
+      console.log(err);
+    } finally {
+      stream.end();
+    }
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ error: 'Something went wrong' });
+    if (!res.headersSent) {
+      return res.status(500).json({ error: 'Something went wrong' });
+    }
   }
 }));
 
@@ -56,6 +73,23 @@ router.get('/:projectId/status', authed(async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(502).json({ error: 'Could not reach the cluster' });
+  }
+}));
+
+
+router.post('/:projectId/sandbox', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  const owned = await ProjectService.getOwnedProject(id, req.userId);
+  if (!owned) return res.status(404).json({ error: 'Project not found' });
+
+  try {
+    const status = await ProjectService.startSandbox(id);
+    return res.json(status);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'Could not start sandbox' });
   }
 }));
 
@@ -133,39 +167,20 @@ router.post('/:projectId/messages', authed(async (req, res) => {
     return res.status(500).json({ error: 'Something went wrong' });
   }
 
-  res.status(200);
-  res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache, no-transform');
-  res.setHeader('X-Accel-Buffering', 'no');
-  
-  if (typeof res.flushHeaders === 'function') {
-    res.flushHeaders();
-  }
-
-  const controller = new AbortController();
-  const onClose = () => {
-    if (!res.writableEnded) controller.abort();
-  };
-  req.on('close', onClose);
-
-  const emit = (doc: MessageDoc) => {
-    if (res.writableEnded) return;
-    res.write(`${JSON.stringify(doc.toJSON())}\n`);
-  };
+  const stream = beginNdjsonMessageStream(req, res);
 
   try {
     await AgentRunService.streamMessageAndRun({
       projectId: id,
       userId: req.userId,
       content,
-      signal: controller.signal,
-      emit,
+      signal: stream.signal,
+      emit: stream.emit,
     });
   } catch (err) {
     console.log(err);
   } finally {
-    req.off('close', onClose);
-    if (!res.writableEnded) res.end();
+    stream.end();
   }
 }));
 

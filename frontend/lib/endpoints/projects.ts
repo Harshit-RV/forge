@@ -1,17 +1,19 @@
-import { request, type Token } from "@/lib/api";
+import { request, requestNdjson, type Token } from "@/lib/api";
 import type {
   CreateProjectInput,
+  Message,
   OkResponse,
   Project,
   SandboxStatus,
 } from "@/lib/types";
 
 export const projectsApi = {
-  create: (token: Token, input: CreateProjectInput) =>
-    request<Project>("/projects/create", token, {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
+  create: (
+    token: Token,
+    input: CreateProjectInput,
+    onMessage: (message: Message) => void
+  ) =>
+    requestNdjson<Message>("/projects/create", token, input, onMessage),
 
   list: (token: Token) => request<Project[]>("/projects/list/user", token),
 
@@ -30,6 +32,11 @@ export const projectsApi = {
 
   status: (token: Token, projectId: string) =>
     request<SandboxStatus>(`/projects/${projectId}/status`, token),
+
+  ensureSandbox: (token: Token, projectId: string) =>
+    request<SandboxStatus>(`/projects/${projectId}/sandbox`, token, {
+      method: "POST",
+    }),
 
   start: (token: Token, projectId: string) =>
     request<SandboxStatus>(`/projects/${projectId}/start`, token, {

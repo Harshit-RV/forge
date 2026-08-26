@@ -7,14 +7,11 @@ import { ChatMessage } from "@/components/chat/chat-message";
 import { ChatRunEventRow, ChatRunRow } from "@/components/chat/chat-run-rows";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMessages, useSendMessage } from "@/hooks/use-messages";
-import type { SandboxState } from "@/lib/types";
 
 export function ChatPanel({
   projectId,
 }: {
   projectId: string;
-  /** Sandbox liveness; chat may send while stopped — POST starts the sandbox. */
-  state?: SandboxState;
 }) {
   const { data: messages, isLoading, error } = useMessages(projectId);
   const sendMessage = useSendMessage(projectId);
