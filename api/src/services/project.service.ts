@@ -54,11 +54,7 @@ class ProjectService {
     try {
       await destroySandbox(projectId);
     } catch (error) {
-      console.error(
-        "sandbox destroy failed on project delete",
-        projectId,
-        error
-      );
+      console.error("sandbox destroy failed on project delete", projectId, error);
     }
 
     await Project.deleteOne({ projectId });

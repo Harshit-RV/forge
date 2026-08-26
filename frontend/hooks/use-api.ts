@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { filesApi } from "@/lib/endpoints/files";
 import { messagesApi } from "@/lib/endpoints/messages";
 import { projectsApi } from "@/lib/endpoints/projects";
-import type { CreateProjectInput } from "@/lib/types";
+import type { CreateProjectInput, Message } from "@/lib/types";
 
 export function useApi() {
   const { getToken } = useAuth();
@@ -32,8 +32,12 @@ export function useApi() {
       messages: {
         list: async (projectId: string) =>
           messagesApi.list(await getToken(), projectId),
-        send: async (projectId: string, content: string) =>
-          messagesApi.send(await getToken(), projectId, content),
+        send: async (
+          projectId: string,
+          content: string,
+          onMessage: (message: Message) => void
+        ) =>
+          messagesApi.send(await getToken(), projectId, content, onMessage),
       },
       files: {
         list: async (projectId: string, path: string) =>

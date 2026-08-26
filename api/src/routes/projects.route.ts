@@ -1,8 +1,11 @@
 import express from 'express';
 import { ProjectProps } from '../models/Project.model';
 import { authed, AuthedRequest, requireUser } from '../middleware/require-user';
+
 import MessageService from '../services/message.service';
 import ProjectService from '../services/project.service';
+import type { MessageDoc } from '../models/message/Message.model';
+import AgentRunService, { AgentRunConflictError, AgentRunNotFoundError } from '../services/agent-run';
 
 const router = express.Router();
 router.use(requireUser);
@@ -107,30 +110,62 @@ router.get('/:projectId/messages', authed(async (req, res) => {
 }));
 
 
-// Add a user message
+// Persist user message + run the agent; stream Message docs as NDJSON.
 router.post('/:projectId/messages', authed(async (req, res) => {
   const id = projectId(req);
   if (!id) return res.status(400).json({ error: 'Invalid project ID' });
 
-  const content =
-    typeof req.body?.content === 'string' ? req.body.content.trim() : '';
+  const content = typeof req.body?.content === 'string' ? req.body.content.trim() : '';
   if (!content) {
     return res.status(400).json({ error: 'content is required' });
   }
 
   try {
-    const message = await MessageService.createUserMessage(
-      id,
-      req.userId,
-      content
-    );
-    if (!message) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-    return res.status(201).json(message.toObject());
+    await AgentRunService.assertCanStart(id, req.userId);
   } catch (err) {
+    if (err instanceof AgentRunNotFoundError) {
+      return res.status(404).json({ error: err.message });
+    }
+    if (err instanceof AgentRunConflictError) {
+      return res.status(409).json({ error: err.message });
+    }
     console.log(err);
     return res.status(500).json({ error: 'Something went wrong' });
+  }
+
+  res.status(200);
+  res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+  
+  if (typeof res.flushHeaders === 'function') {
+    res.flushHeaders();
+  }
+
+  const controller = new AbortController();
+  const onClose = () => {
+    if (!res.writableEnded) controller.abort();
+  };
+  req.on('close', onClose);
+
+  const emit = (doc: MessageDoc) => {
+    if (res.writableEnded) return;
+    res.write(`${JSON.stringify(doc.toJSON())}\n`);
+  };
+
+  try {
+    await AgentRunService.streamMessageAndRun({
+      projectId: id,
+      userId: req.userId,
+      content,
+      signal: controller.signal,
+      emit,
+    });
+  } catch (err) {
+    console.log(err);
+  } finally {
+    req.off('close', onClose);
+    if (!res.writableEnded) res.end();
   }
 }));
 

@@ -11,9 +11,9 @@ import type { SandboxState } from "@/lib/types";
 
 export function ChatPanel({
   projectId,
-  state,
 }: {
   projectId: string;
+  /** Sandbox liveness; chat may send while stopped — POST starts the sandbox. */
   state?: SandboxState;
 }) {
   const { data: messages, isLoading, error } = useMessages(projectId);
@@ -34,8 +34,6 @@ export function ChatPanel({
       );
     }
   }
-
-  const unavailable = state !== "RUNNING";
 
   return (
     <div className="flex h-full flex-col">
@@ -78,7 +76,6 @@ export function ChatPanel({
 
       <ChatComposer
         onSend={(content) => void onSend(content)}
-        disabled={unavailable}
         pending={sendMessage.isPending}
       />
     </div>

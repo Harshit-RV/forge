@@ -16,6 +16,14 @@ class MessageService {
     return items;
   };
 
+  static insertUserTextMessage = async ( projectId: string, content: string ) : Promise<MessageDoc> => {
+    return new MessageModel({
+      projectId,
+      type: 'TEXT_MESSAGE',
+      textMessage: { role: 'user', content },
+    }).save();
+  }
+
   static createUserMessage = async (
     projectId: string,
     userId: string,
@@ -24,14 +32,7 @@ class MessageService {
     const project = await ProjectService.getOwnedProject(projectId, userId);
     if (!project) return null;
 
-    return new MessageModel({
-      projectId,
-      type: 'TEXT_MESSAGE',
-      textMessage: {
-        role: 'user',
-        content,
-      },
-    }).save();
+    return this.insertUserTextMessage(projectId, content);
   };
 }
 

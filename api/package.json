@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/express": "^2.1.61",
+    "agent": "file:../agent",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^5.1.0",
