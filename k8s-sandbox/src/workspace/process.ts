@@ -2,6 +2,7 @@ import { WORKSPACE_DIR } from '../config';
 import { shell } from '../kube/exec';
 
 const DEV_LOG = `${WORKSPACE_DIR}/.forge/dev.log`;
+const DEV_PID = `${WORKSPACE_DIR}/.forge/dev.pid`;
 const ANSI = /\u001B\[[0-9;]*[A-Za-z]/g;
 
 export async function runNpmInstall(podName: string): Promise<void> {
@@ -21,6 +22,7 @@ function parseDevServerPort(logText: string): number | undefined {
   return undefined;
 }
 
+// Start Vite, writes pid to `.forge/dev.pid` and logs to `.forge/dev.log`
 export async function startDevServer(podName: string): Promise<number> {
   const start = await shell(
     podName,
@@ -29,7 +31,8 @@ export async function startDevServer(podName: string): Promise<number> {
       `cd ${WORKSPACE_DIR}`,
       `: > ${DEV_LOG}`,
       `nohup npm run dev -- --host 0.0.0.0 > ${DEV_LOG} 2>&1 < /dev/null &`,
-      'echo $!',
+      `echo $! > ${DEV_PID}`,
+      `cat ${DEV_PID}`,
     ].join('\n')
   );
   if (start.exitCode !== 0) {
