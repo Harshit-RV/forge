@@ -10,3 +10,5 @@ export {
 } from './sandbox';
 
 export { shell, exec, type ExecResult } from './kube/exec';
+
+export { isAlreadyExists, isNotFound } from './kube/errors';

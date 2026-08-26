@@ -2,10 +2,29 @@ import Project, { ProjectDoc, ProjectProps } from "../models/Project.model";
 import {
   create as createSandbox,
   destroy as destroySandbox,
+  isAlreadyExists,
   status as sandboxStatus,
   type SandboxStatus,
 } from "k8s-sandbox";
 import { touchSandbox } from "./sandbox-idle";
+import Helper from "../utils/helper.util";
+
+const PEER_WAIT_MS = 5 * 60_000;
+const PEER_POLL_MS = 2_000;
+
+// Someone else is provisioning this sandbox. Poll until it settles.
+// RUNNING means the peer won; STOPPED/FAILED means the peer died and we should retry.
+const waitForPeerProvision = async (projectId: string): Promise<SandboxStatus> => {
+  const deadline = Date.now() + PEER_WAIT_MS;
+
+  while (Date.now() < deadline) {
+    await Helper.sleep(PEER_POLL_MS);
+    const status = await sandboxStatus(projectId);
+    if (status.state !== 'CREATING') return status;
+  }
+
+  throw new Error(`Sandbox ${projectId} did not settle while joining a peer provision`);
+};
 
 class ProjectService {
   static createProjectRecord = async ( args: ProjectProps ): Promise<ProjectDoc> => {
@@ -18,8 +37,7 @@ class ProjectService {
     const project = await this.createProjectRecord(args);
     
     try {
-      await createSandbox(project.projectId);
-      await touchSandbox(project.projectId);
+      await this.startSandbox(project.projectId);
       return project;
     } catch (error) {
       await Project.findByIdAndDelete(project._id);
@@ -35,19 +53,48 @@ class ProjectService {
     return sandboxStatus(projectId);
   };
 
+  // The single idempotent start path. Safe to call concurrently:
   static startSandbox = async (projectId: string): Promise<SandboxStatus> => {
-    const current = await sandboxStatus(projectId);
-    if (current.state === 'RUNNING' || current.state === 'CREATING') {
-      return current;
-    }
+    let status = await sandboxStatus(projectId);
+    let retried = false;
 
-    if (current.state === 'FAILED') {
-      await destroySandbox(projectId);
-    }
+    for (;;) {
+      if (status.state === 'RUNNING') {
+        await touchSandbox(projectId);
+        return status;
+      }
 
-    await createSandbox(projectId);
-    await touchSandbox(projectId);
-    return sandboxStatus(projectId);
+      if (status.state === 'CREATING') {
+        status = await waitForPeerProvision(projectId);
+        // Peer failed. Retry the provision ourselves, 
+        // but only once, so two concurrent losers can't bounce off each other forever.
+        if (status.state !== 'RUNNING') {
+          if (retried) {
+            throw new Error(
+              `Sandbox ${projectId} failed to start (last state: ${status.state})`
+            );
+          }
+          retried = true;
+        }
+        continue;
+      }
+
+      if (status.state === 'FAILED') {
+        await destroySandbox(projectId);
+      }
+
+      try {
+        await createSandbox(projectId);
+      } catch (error) {
+        if (!isAlreadyExists(error)) throw error;
+        // A peer created the pod between our status read and our create.
+        status = { state: 'CREATING', previewUrl: null };
+        continue;
+      }
+
+      await touchSandbox(projectId);
+      return sandboxStatus(projectId);
+    }
   };
 
   static stopSandbox = async (projectId: string): Promise<SandboxStatus> => {

@@ -3,6 +3,7 @@ import { copyStarter } from './workspace/transfer';
 import { runNpmInstall, startDevServer } from './workspace/process';
 import K8Service from './kube/service';
 import K8Pod from './kube/pod';
+import { isAlreadyExists } from './kube/errors';
 
 export type Sandbox = {
   projectId: string;
@@ -52,10 +53,13 @@ export async function create(projectId: string): Promise<Sandbox> {
     await K8Service.waitForEndpoints(svc);
     return { projectId, previewUrl: previewUrl(projectId) };
   } catch (error) {
-    try {
-      await destroy(projectId);
-    } catch {
-      // keep the original create error
+    // A 409 means a concurrent caller already created the pod. Don't destroy theirs.
+    if (!isAlreadyExists(error)) {
+      try {
+        await destroy(projectId);
+      } catch {
+        // keep the original create error
+      }
     }
     throw error;
   }
