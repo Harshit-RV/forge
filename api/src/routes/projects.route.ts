@@ -1,6 +1,7 @@
 import express from 'express';
 import { ProjectProps } from '../models/Project.model';
 import { authed, AuthedRequest, requireUser } from '../middleware/require-user';
+import MessageService from '../services/message.service';
 import ProjectService from '../services/project.service';
 
 const router = express.Router();
@@ -81,6 +82,55 @@ router.post('/:projectId/stop', authed(async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'Could not stop sandbox' });
+  }
+}));
+
+
+// Conversation timeline (messages + runs + run events) - oldest first.
+router.get('/:projectId/messages', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  try {
+    const timeline = await MessageService.listTimelineForOwnedProject(
+      id,
+      req.userId
+    );
+    if (!timeline) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    return res.json(timeline);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'Something went wrong' });
+  }
+}));
+
+
+// Add a user message
+router.post('/:projectId/messages', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  const content =
+    typeof req.body?.content === 'string' ? req.body.content.trim() : '';
+  if (!content) {
+    return res.status(400).json({ error: 'content is required' });
+  }
+
+  try {
+    const message = await MessageService.createUserMessage(
+      id,
+      req.userId,
+      content
+    );
+    if (!message) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    return res.status(201).json(message.toObject());
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'Something went wrong' });
   }
 }));
 
