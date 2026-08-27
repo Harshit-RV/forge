@@ -122,6 +122,18 @@ class ProjectService {
   ): Promise<ProjectDoc | null> => {
     return Project.findOne({ projectId, userId });
   };
+
+  static updateOwnedProject = async (
+    projectId: string,
+    userId: string,
+    patch: { title: string | null },
+  ): Promise<ProjectDoc | null> => {
+    return Project.findOneAndUpdate(
+      { projectId, userId },
+      { $set: patch },
+      { new: true },
+    );
+  };
 }
 
 export default ProjectService;

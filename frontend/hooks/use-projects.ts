@@ -90,6 +90,63 @@ export function useCreateProject() {
   });
 }
 
+export function useUpdateProject() {
+  const client = useApi();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      title,
+    }: {
+      projectId: string;
+      title: string | null;
+    }) => client.projects.update(projectId, { title }),
+    onMutate: async ({ projectId, title }) => {
+      await queryClient.cancelQueries({ queryKey: projectKeys.detail(projectId) });
+      await queryClient.cancelQueries({ queryKey: projectKeys.all });
+
+      const previousDetail = queryClient.getQueryData<Project>(
+        projectKeys.detail(projectId)
+      );
+      const previousList = queryClient.getQueryData<Project[]>(projectKeys.all);
+
+      queryClient.setQueryData<Project>(projectKeys.detail(projectId), (current) =>
+        current ? { ...current, title } : current
+      );
+      queryClient.setQueryData<Project[]>(projectKeys.all, (current) =>
+        current?.map((project) =>
+          project.projectId === projectId ? { ...project, title } : project
+        )
+      );
+
+      return { previousDetail, previousList };
+    },
+    onError: (error, { projectId }, context) => {
+      if (context?.previousDetail) {
+        queryClient.setQueryData(
+          projectKeys.detail(projectId),
+          context.previousDetail
+        );
+      }
+      if (context?.previousList) {
+        queryClient.setQueryData(projectKeys.all, context.previousList);
+      }
+      toast.error(
+        error instanceof Error ? error.message : "Could not update title"
+      );
+    },
+    onSuccess: (project) => {
+      queryClient.setQueryData(projectKeys.detail(project.projectId), project);
+      queryClient.setQueryData<Project[]>(projectKeys.all, (current) =>
+        current?.map((item) =>
+          item.projectId === project.projectId ? project : item
+        )
+      );
+    },
+  });
+}
+
 export function useDeleteProject() {
   const client = useApi();
   const queryClient = useQueryClient();

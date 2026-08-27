@@ -15,6 +15,10 @@ export type CreateProjectInput = {
   subtitle?: string;
 };
 
+export type UpdateProjectInput = {
+  title: string | null;
+};
+
 export type OkResponse = { ok: true };
 
 export type SandboxState = "STOPPED" | "CREATING" | "RUNNING" | "FAILED";

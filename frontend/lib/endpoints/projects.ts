@@ -5,6 +5,7 @@ import type {
   OkResponse,
   Project,
   SandboxStatus,
+  UpdateProjectInput,
 } from "@/lib/types";
 
 export const projectsApi = {
@@ -19,6 +20,12 @@ export const projectsApi = {
 
   get: (token: Token, projectId: string) =>
     request<Project>(`/projects/${projectId}`, token),
+
+  update: (token: Token, projectId: string, input: UpdateProjectInput) =>
+    request<Project>(`/projects/${projectId}`, token, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
 
   remove: (token: Token, projectId: string) =>
     request<OkResponse>(`/projects/${projectId}`, token, {

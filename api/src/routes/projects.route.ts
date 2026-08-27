@@ -218,6 +218,29 @@ router.get('/:projectId', authed(async (req, res) => {
 }));
 
 
+router.patch('/:projectId', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+  
+  if (req.body?.title === undefined) {
+    return res.status(400).json({ error: 'title is required' });
+  }
+
+  try {
+    const project = await ProjectService.updateOwnedProject(id, req.userId, {
+      title: Helper.optionalString(req.body?.title),
+    });
+    
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+    
+    return res.json(project.toObject());
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Could not update project' });
+  }
+}));
+
+
 // Delete the project and destroy its sandbox
 router.delete('/:projectId', authed(async (req, res) => {
   const id = projectId(req);
