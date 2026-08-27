@@ -286,6 +286,22 @@
     animation-delay: 240ms;
   }
 
+  .forge-rise {
+    animation: landing-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .forge-rise-delay-1 {
+    animation-delay: 80ms;
+  }
+
+  .forge-rise-delay-2 {
+    animation-delay: 160ms;
+  }
+
+  .forge-rise-delay-3 {
+    animation-delay: 240ms;
+  }
+
   .landing-float {
     animation: landing-float 7s ease-in-out infinite;
   }
@@ -293,6 +309,7 @@
   @media (prefers-reduced-motion: reduce) {
     .landing-atmosphere,
     .landing-rise,
+    .forge-rise,
     .landing-float {
       animation: none;
     }

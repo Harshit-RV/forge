@@ -68,7 +68,7 @@ export function PreviewPanel({
         </Tooltip>
       </div>
 
-      <div className="min-h-0 flex-1 bg-muted/30">
+      <div className="min-h-0 flex-1 bg-[radial-gradient(120%_80%_at_50%_0%,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_55%)]">
         <PreviewBody
           previewUrl={previewUrl}
           state={state}

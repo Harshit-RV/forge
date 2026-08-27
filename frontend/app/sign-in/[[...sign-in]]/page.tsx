@@ -1,12 +1,12 @@
 import { SignIn } from "@clerk/nextjs";
+import { AuthShell } from "@/components/auth-shell";
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center gap-8 px-4">
-      <span className="font-mono text-sm font-semibold tracking-tight">
-        forge
-      </span>
-      <SignIn />
-    </div>
+    <AuthShell title="Sign in to plan, build, and preview in a live sandbox.">
+      <div className="flex justify-center">
+        <SignIn />
+      </div>
+    </AuthShell>
   );
 }
