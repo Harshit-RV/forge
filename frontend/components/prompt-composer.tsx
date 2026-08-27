@@ -10,8 +10,7 @@ import { useCreateProject } from "@/hooks/use-projects";
 
 const SUGGESTIONS = [
   "Build a markdown notes app with local storage",
-  "Create a REST API for a task tracker",
-  "Make a landing page with a pricing table",
+  "Make a landing page for a dating app with a pricing table",
 ];
 
 export function PromptComposer() {
