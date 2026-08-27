@@ -10,7 +10,7 @@ spec:
   selector:
     k8s-sandbox.dev/role: edge
   ports:
-    - name: http
-      port: 80
-      targetPort: 80
+    - name: https
+      port: 443
+      targetPort: 443
       protocol: TCP

@@ -14,5 +14,5 @@ export const podNameFor = appNameFor;
 export const serviceNameFor = appNameFor;
 
 export function previewUrl(projectId: string): string {
-  return `http://${appNameFor(projectId)}.${PREVIEW_BASE_HOST}`;
+  return `https://${appNameFor(projectId)}.${PREVIEW_BASE_HOST}`;
 }

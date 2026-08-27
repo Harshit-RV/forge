@@ -2,6 +2,8 @@
 	admin localhost:2019
 }
 
-http://*.forge.harshitrv.com {
+https://*.forge.harshitrv.com:443 {
+	tls /etc/certs/tls.crt /etc/certs/tls.key
+
 	reverse_proxy {http.request.host.labels.3}.forge.svc.cluster.local:80
 }

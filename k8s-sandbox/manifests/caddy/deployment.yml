@@ -28,11 +28,14 @@ spec:
             - --adapter
             - caddyfile
           ports:
-            - name: http
-              containerPort: 80
+            - name: https
+              containerPort: 443
           volumeMounts:
             - name: caddy-config
               mountPath: /etc/caddy
+              readOnly: true
+            - name: wildcard-certs
+              mountPath: /etc/certs
               readOnly: true
       volumes:
         - name: caddy-config
@@ -41,3 +44,6 @@ spec:
             items:
               - key: Caddyfile
                 path: Caddyfile
+        - name: wildcard-certs
+          secret:
+            secretName: wildcard-forge-harshitrv-com-tls
