@@ -133,7 +133,7 @@ function PreviewBody({
       <PreviewNotice
         icon={<TriangleAlertIcon className="size-5" />}
         title="Sandbox is not running"
-        detail="Idle sandboxes are reclaimed. Starting again builds a fresh sandbox — the previous workspace is not kept."
+        detail="Idle sandboxes are reclaimed. Starting again builds a fresh sandbox. The previous workspace is not kept."
       />
     );
   }

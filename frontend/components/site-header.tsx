@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton, useAuth, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, useAuth, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,16 @@ export function SiteHeader() {
         {isSignedIn ? (
           <UserButton />
         ) : (
-          <SignInButton>
-            <Button size="sm">Sign in</Button>
-          </SignInButton>
+          <>
+            <SignInButton>
+              <Button size="sm" variant="ghost">
+                Sign in
+              </Button>
+            </SignInButton>
+            <SignUpButton>
+              <Button size="sm">Sign up</Button>
+            </SignUpButton>
+          </>
         )}
       </div>
     </header>
