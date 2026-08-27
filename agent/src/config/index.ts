@@ -3,7 +3,7 @@ import { AgentBounds } from '../types';
 
 configDotenv()
 
-export const MODEL = 'claude-haiku-4-5-20251001';
+export const MODEL = 'claude-sonnet-5';
 
 export const AGENT_DEFAULT_BOUNDS: AgentBounds = {
     maxIterations: 60,
