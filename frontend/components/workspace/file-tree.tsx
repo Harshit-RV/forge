@@ -17,7 +17,7 @@ export function FileTree({
   onSelect: (path: string) => void;
   enabled?: boolean;
 }) {
-  const { data: entries, isLoading, error } = useFiles(
+  const { data: entries, isPending, error } = useFiles(
     projectId,
     ROOT_PATH,
     enabled
@@ -31,7 +31,7 @@ export function FileTree({
     );
   }
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="space-y-2 p-3">
         {Array.from({ length: 6 }, (_, index) => (

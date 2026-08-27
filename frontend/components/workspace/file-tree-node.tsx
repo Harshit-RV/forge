@@ -22,7 +22,7 @@ export function FileTreeNode({
 }) {
   const [expanded, setExpanded] = useState(false);
   const isDirectory = entry.type === "directory";
-  const { data: children, isLoading } = useFiles(
+  const { data: children, isPending } = useFiles(
     projectId,
     entry.path,
     isDirectory && expanded
@@ -59,7 +59,7 @@ export function FileTreeNode({
         <span className="truncate">{entry.name}</span>
       </button>
 
-      {isDirectory && expanded && !isLoading
+      {isDirectory && expanded && !isPending
         ? children?.map((child) => (
             <FileTreeNode
               key={child.path}
@@ -72,7 +72,7 @@ export function FileTreeNode({
           ))
         : null}
 
-      {isDirectory && expanded && isLoading ? (
+      {isDirectory && expanded && isPending ? (
         <Skeleton
           className="my-1 h-3"
           style={{ marginLeft: `${(depth + 1) * 12 + 22}px`, width: "50%" }}

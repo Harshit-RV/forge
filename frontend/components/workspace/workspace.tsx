@@ -20,7 +20,7 @@ import { useProject } from "@/hooks/use-projects";
 import { useSandboxControls, useSandboxStatus } from "@/hooks/use-sandbox";
 
 export function Workspace({ projectId }: { projectId: string }) {
-  const { data: project, isLoading, error } = useProject(projectId);
+  const { data: project, isPending, error } = useProject(projectId);
   const controls = useSandboxControls(projectId);
   const { isPending: ensuringSandbox } = useEnsureSandbox(projectId, !!project);
   const startingSandbox = ensuringSandbox || controls.start.isPending;
@@ -32,7 +32,7 @@ export function Workspace({ projectId }: { projectId: string }) {
 
   useHeartbeat(projectId, sandbox?.state === "RUNNING");
 
-  if (isLoading) {
+  if (isPending) {
     return <WorkspaceSkeleton />;
   }
 

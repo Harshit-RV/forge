@@ -8,7 +8,7 @@ import { useProjects } from "@/hooks/use-projects";
 const RECENT_LIMIT = 6;
 
 export function HomeDashboard() {
-  const { data: projects, isLoading } = useProjects();
+  const { data: projects, isPending } = useProjects();
 
   const recent = projects
     ?.slice()
@@ -44,7 +44,7 @@ export function HomeDashboard() {
             </Link>
           ) : null}
         </div>
-        <ProjectGrid projects={recent} isLoading={isLoading} />
+        <ProjectGrid projects={recent} isLoading={isPending} />
       </section>
     </div>
   );

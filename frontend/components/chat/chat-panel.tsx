@@ -20,7 +20,7 @@ export function ChatPanel({
 }: {
   projectId: string;
 }) {
-  const { data: messages, isLoading, error } = useMessages(projectId);
+  const { data: messages, isPending, error } = useMessages(projectId);
   const sendMessage = useSendMessage(projectId);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
@@ -106,7 +106,7 @@ export function ChatPanel({
         onScroll={onScroll}
         className="min-h-0 flex-1 overflow-y-auto px-4 py-5"
       >
-        {isLoading ? (
+        {isPending ? (
           <div className="space-y-5">
             <Skeleton className="ml-auto h-12 w-3/4 rounded-2xl" />
             <Skeleton className="h-20 w-full" />
@@ -151,7 +151,7 @@ export function ChatPanel({
             </p>
           </div>
         )}
-        {!isLoading && !error ? <ChatWorkingBar messages={items} /> : null}
+        {!isPending && !error ? <ChatWorkingBar messages={items} /> : null}
       </div>
 
       <ChatComposer

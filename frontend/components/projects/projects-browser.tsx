@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useProjects } from "@/hooks/use-projects";
 
 export function ProjectsBrowser() {
-  const { data: projects, isLoading } = useProjects();
+  const { data: projects, isPending } = useProjects();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -44,7 +44,7 @@ export function ProjectsBrowser() {
 
       <ProjectGrid
         projects={filtered}
-        isLoading={isLoading}
+        isLoading={isPending}
         skeletonCount={6}
         emptyMessage={
           query.trim()

@@ -26,23 +26,23 @@ function upsertMessage(list: Message[], message: Message): Message[] {
 
 export function useProjects() {
   const client = useApi();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
 
   return useQuery({
     queryKey: projectKeys.all,
     queryFn: () => client.projects.list(),
-    enabled: !!isSignedIn,
+    enabled: isLoaded && !!isSignedIn,
   });
 }
 
 export function useProject(projectId: string) {
   const client = useApi();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
 
   return useQuery({
     queryKey: projectKeys.detail(projectId),
     queryFn: () => client.projects.get(projectId),
-    enabled: !!isSignedIn && !!projectId,
+    enabled: isLoaded && !!isSignedIn && !!projectId,
   });
 }
 

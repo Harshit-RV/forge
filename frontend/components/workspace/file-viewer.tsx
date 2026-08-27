@@ -12,7 +12,7 @@ export function FileViewer({
   path: string | null;
   enabled?: boolean;
 }) {
-  const { data, isLoading, error } = useFileContent(projectId, path, enabled);
+  const { data, isPending, error } = useFileContent(projectId, path, enabled);
 
   if (!enabled) {
     return (
@@ -34,7 +34,7 @@ export function FileViewer({
     );
   }
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="space-y-2 p-4">
         {Array.from({ length: 12 }, (_, index) => (
