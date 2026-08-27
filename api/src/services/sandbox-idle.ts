@@ -6,14 +6,15 @@ export async function touchSandbox(projectId: string): Promise<void> {
   await Project.updateOne({ projectId }, { lastActivityAt: new Date() });
 }
 
-async function reapIdleSandboxes(): Promise<void> {
+export async function reapIdleSandboxes(): Promise<void> {
   const cutoff = new Date(Date.now() - config.sandboxIdleMs);
   const idle = await Project.find({ lastActivityAt: { $lt: cutoff } });
 
   for (const project of idle) {
     try {
       const { state } = await status(project.projectId);
-      if (state === 'STOPPED') continue;
+      // Never tear down an in-flight create. RUNNING and FAILED idle sandboxes go.
+      if (state === 'STOPPED' || state === 'CREATING') continue;
 
       await destroy(project.projectId);
       console.log("idle sandbox destroyed", project.projectId);

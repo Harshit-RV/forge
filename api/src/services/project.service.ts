@@ -19,6 +19,7 @@ const waitForPeerProvision = async (projectId: string): Promise<SandboxStatus> =
 
   while (Date.now() < deadline) {
     await Helper.sleep(PEER_POLL_MS);
+    await touchSandbox(projectId);
     const status = await sandboxStatus(projectId);
     if (status.state !== 'CREATING') return status;
   }
@@ -55,6 +56,8 @@ class ProjectService {
 
   // The single idempotent start path. Safe to call concurrently:
   static startSandbox = async (projectId: string): Promise<SandboxStatus> => {
+    // Refresh before provision so the idle reaper won't treat an in-flight create as idle.
+    await touchSandbox(projectId);
     let status = await sandboxStatus(projectId);
     let retried = false;
 

@@ -32,9 +32,14 @@ class K8Service {
     const deadline = Date.now() + timeoutMs;
   
     while (Date.now() < deadline) {
-      const endpoints = await core.readNamespacedEndpoints({ name, namespace: NAMESPACE });
-      const ready = endpoints.subsets?.some((subset) => (subset.addresses?.length ?? 0) > 0);
-      if (ready) return;
+      try {
+        const endpoints = await core.readNamespacedEndpoints({ name, namespace: NAMESPACE });
+        const ready = endpoints.subsets?.some((subset) => (subset.addresses?.length ?? 0) > 0);
+        if (ready) return;
+      } catch (error) {
+        // Same as hasReadyEndpoints: NotFound means not ready yet (or briefly gone).
+        if (!isNotFound(error)) throw error;
+      }
       await new Promise((r) => setTimeout(r, 500));
     }
   
