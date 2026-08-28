@@ -212,26 +212,6 @@
   }
 }
 
-@keyframes landing-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-@keyframes landing-drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(2%, -1.5%, 0) scale(1.03);
-  }
-}
-
 @layer components {
   .landing-atmosphere {
     background:
@@ -251,7 +231,6 @@
         var(--background) 48%,
         color-mix(in oklch, var(--background) 92%, var(--muted) 8%) 100%
       );
-    animation: landing-drift 18s ease-in-out infinite;
   }
 
   .landing-grid {
@@ -302,15 +281,9 @@
     animation-delay: 240ms;
   }
 
-  .landing-float {
-    animation: landing-float 7s ease-in-out infinite;
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .landing-atmosphere,
     .landing-rise,
-    .forge-rise,
-    .landing-float {
+    .forge-rise {
       animation: none;
     }
   }

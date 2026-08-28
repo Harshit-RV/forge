@@ -11,7 +11,7 @@ export default function Home() {
       <Show when="signed-in" fallback={<SignedOutHome />}>
         <main className="relative flex w-full flex-1 flex-col">
           <PageAtmosphere intensity="soft" />
-          <div className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-12 sm:px-8 sm:py-16">
+          <div className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-12 sm:px-8">
             <HomeDashboard />
           </div>
         </main>

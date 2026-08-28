@@ -33,7 +33,7 @@ export function SignedOutHome() {
         className="pointer-events-none absolute inset-0 landing-grid opacity-[0.35] dark:opacity-[0.22]"
       />
 
-      <section className="relative mx-auto grid w-full max-w-6xl flex-1 items-center gap-12 px-4 py-14 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:py-20">
+      <section className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-14 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
         <div className="flex flex-col items-start text-left">
           <p className="landing-rise font-mono text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
             forge
@@ -63,7 +63,7 @@ export function SignedOutHome() {
       </section>
 
       <section className="relative border-t bg-background/60 backdrop-blur-[2px]">
-        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-14 sm:px-8 sm:py-16 md:grid-cols-3 md:gap-8">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-14 sm:px-8 md:grid-cols-3 md:gap-8">
           {STEPS.map((step) => (
             <div key={step.label} className="space-y-3">
               <p className="font-mono text-xs tracking-wider text-primary">
@@ -87,7 +87,7 @@ function WorkspacePreview() {
   return (
     <div
       aria-hidden
-      className="landing-float relative overflow-hidden rounded-xl border border-foreground/10 bg-background/80 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.45)] ring-1 ring-foreground/5 backdrop-blur-sm dark:bg-background/50"
+      className="relative overflow-hidden rounded-xl border border-foreground/10 bg-background/80 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.45)] ring-1 ring-foreground/5 backdrop-blur-sm dark:bg-background/50"
     >
       <div className="flex h-9 items-center gap-2 border-b border-foreground/8 px-3">
         <span className="size-2 rounded-full bg-foreground/15" />
@@ -98,7 +98,7 @@ function WorkspacePreview() {
         </span>
       </div>
 
-      <div className="grid min-h-70 grid-cols-[42%_1fr] sm:min-h-80">
+      <div className="grid grid-cols-[42%_1fr]">
         <div className="flex flex-col gap-3 border-r border-foreground/8 bg-muted/30 p-3 sm:p-4">
           <div className="space-y-1.5">
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
