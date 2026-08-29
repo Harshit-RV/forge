@@ -1,5 +1,4 @@
 import { podNameFor, previewUrl, serviceNameFor } from './config';
-import { copyStarter } from './workspace/transfer';
 import { runNpmInstall, startDevServer } from './workspace/process';
 import K8Service from './kube/service';
 import K8Pod from './kube/pod';
@@ -46,7 +45,7 @@ export async function create(projectId: string): Promise<Sandbox> {
   try {
     const name = await K8Pod.create(projectId);
     await K8Pod.waitForRunning(name);
-    await copyStarter(name);
+
     await runNpmInstall(name);
     const port = await startDevServer(name);
     const svc = await K8Service.create(projectId, port);

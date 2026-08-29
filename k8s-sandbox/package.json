@@ -12,8 +12,7 @@
     "smoke": "tsx scripts/smoke.ts"
   },
   "dependencies": {
-    "@kubernetes/client-node": "^2.0.0",
-    "tar": "^7.5.22"
+    "@kubernetes/client-node": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
