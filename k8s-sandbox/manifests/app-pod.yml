@@ -7,6 +7,7 @@ metadata:
     k8s-sandbox.dev/project-id: __PROJECT_ID__
 spec:
   automountServiceAccountToken: false
+  terminationGracePeriodSeconds: 60
   initContainers:
     - name: workspace-init
       image: ghcr.io/harshit-rv/forge-workspace-init:latest
@@ -49,6 +50,43 @@ spec:
       volumeMounts:
         - name: workspace
           mountPath: /workspace
+    - name: backup-sidecar
+      image: ghcr.io/harshit-rv/forge-backup-sidecar:latest
+      volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+      env:
+        - name: PROJECT_ID
+          value: "__PROJECT_ID__"
+        - name: S3_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: forge-config
+              key: S3_BUCKET
+        - name: S3_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: forge-config
+              key: S3_ENDPOINT
+        - name: AWS_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: forge-config
+              key: S3_REGION
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: s3-backup-secret
+              key: access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-backup-secret
+              key: secret-access-key
+      lifecycle:
+        preStop:
+          exec:
+            command: ["/run.sh"]
   volumes:
     - name: workspace
       emptyDir: {}
