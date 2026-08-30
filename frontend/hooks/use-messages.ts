@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Message } from "@/lib/types";
+import { fileKeys } from "./use-files";
 import { useApi } from "./use-api";
 
 export const messageKeys = {
@@ -63,6 +64,9 @@ export function useSendMessage(projectId: string) {
     onSettled: () => {
       void queryClient.invalidateQueries({
         queryKey: messageKeys.list(projectId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: fileKeys.all(projectId),
       });
     },
   });

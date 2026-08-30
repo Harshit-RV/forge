@@ -3,6 +3,7 @@ import { authed, AuthedRequest, requireUser } from '../middleware/require-user';
 
 import MessageService from '../services/message.service';
 import ProjectService from '../services/project.service';
+import FileService, { FileServiceError } from '../services/file';
 import AgentRunService, { AgentRunConflictError, AgentRunNotFoundError } from '../services/agent-run';
 import { beginNdjsonMessageStream } from '../utils/ndjson-stream';
 import Helper from '../utils/helper.util';
@@ -13,6 +14,11 @@ router.use(requireUser);
 function projectId(req: AuthedRequest) {
   const { projectId } = req.params;
   return typeof projectId === 'string' ? projectId : undefined;
+}
+
+function queryPath(req: AuthedRequest): string | undefined {
+  const { path } = req.query;
+  return typeof path === 'string' ? path : undefined;
 }
 
 // Create project + run the agent (which provisions sandbox as well); stream Message docs as NDJSON.
@@ -73,6 +79,42 @@ router.get('/:projectId/status', authed(async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(502).json({ error: 'Could not reach the cluster' });
+  }
+}));
+
+
+router.get('/:projectId/files', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  try {
+    const filePath = queryPath(req)
+    const entries = await FileService.listFiles(id, req.userId, filePath);
+    return res.json(entries);
+  } catch (err) {
+    if (err instanceof FileServiceError) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    console.log(err);
+    return res.status(500).json({ error: 'Could not list files' });
+  }
+}));
+
+
+router.get('/:projectId/file', authed(async (req, res) => {
+  const id = projectId(req);
+  if (!id) return res.status(400).json({ error: 'Invalid project ID' });
+
+  try {
+    const filePath = queryPath(req)
+    const file = await FileService.readFile(id, req.userId, filePath);
+    return res.json(file);
+  } catch (err) {
+    if (err instanceof FileServiceError) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    console.log(err);
+    return res.status(500).json({ error: 'Could not read file' });
   }
 }));
 

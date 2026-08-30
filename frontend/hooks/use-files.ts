@@ -5,10 +5,11 @@ import { ApiError } from "@/lib/api";
 import { useApi } from "./use-api";
 
 export const fileKeys = {
+  all: (projectId: string) => ["files", projectId] as const,
   list: (projectId: string, path: string) =>
-    ["files", projectId, path] as const,
+    ["files", projectId, "list", path] as const,
   content: (projectId: string, path: string) =>
-    ["file", projectId, path] as const,
+    ["files", projectId, "content", path] as const,
 };
 
 export function useFiles(projectId: string, path: string, enabled = true) {

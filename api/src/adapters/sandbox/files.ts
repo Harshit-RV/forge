@@ -1,8 +1,6 @@
 import type { FileEntry } from 'agent';
 import { shell, WORKSPACE_DIR } from 'k8s-sandbox';
-import { pathJoin, resolveWorkspacePath, shQuote } from './paths';
-
-const LIST_SKIP = new Set(['node_modules', '.git']);
+import { HIDDEN_DIR_NAMES, pathJoin, resolveWorkspacePath, shQuote } from './paths';
 
 export const listFiles = async (pod: string, dirPath: string): Promise<FileEntry[]> => {
   const abs = resolveWorkspacePath(dirPath);
@@ -25,9 +23,12 @@ export const listFiles = async (pod: string, dirPath: string): Promise<FileEntry
     if (!line.trim()) continue;
     const tab = line.indexOf('\t');
     if (tab < 0) continue;
+    
     const name = line.slice(0, tab);
     const kind = line.slice(tab + 1);
-    if (LIST_SKIP.has(name)) continue;
+    
+    if (HIDDEN_DIR_NAMES.includes(name)) continue;
+    
     entries.push({
       name,
       path: pathJoin(abs, name),
@@ -96,7 +97,7 @@ export const searchCode = async (pod: string, pattern: string): Promise<string> 
   const script = [
     `pattern=$(printf "%s" ${shQuote(patternB64)} | base64 -d)`,
     `cd ${shQuote(WORKSPACE_DIR)}`,
-    'grep -RInE --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.forge --exclude-dir=.vite -e "$pattern" . 2>/dev/null || true',
+    `grep -RInE ${HIDDEN_DIR_NAMES.map((name) => `--exclude-dir=${name}`).join(' ')} -e "$pattern" . 2>/dev/null || true`,
   ].join('\n');
 
   const result = await shell(pod, script);

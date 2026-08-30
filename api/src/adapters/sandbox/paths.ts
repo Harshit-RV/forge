@@ -1,6 +1,20 @@
 import path from 'node:path';
 import { WORKSPACE_DIR } from 'k8s-sandbox';
 
+// Directories never shown in the user file tree, and skipped by list/search
+export const HIDDEN_DIR_NAMES = ['node_modules', '.git', '.forge', '.vite'];
+
+export function isHiddenWorkspacePath(input: string): boolean {
+  const abs = resolveWorkspacePath(input);
+  
+  if (abs === WORKSPACE_DIR) return false;
+  
+  return abs
+    .slice(WORKSPACE_DIR.length + 1)
+    .split('/')
+    .some((segment) => HIDDEN_DIR_NAMES.includes(segment));
+}
+
 /**
   Safely quotes a value for use as a single shell argument.
 
