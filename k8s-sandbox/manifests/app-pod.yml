@@ -50,6 +50,17 @@ spec:
       volumeMounts:
         - name: workspace
           mountPath: /workspace
+      ports:
+        - name: http
+          containerPort: __DEV_SERVER_PORT__
+      readinessProbe:
+        httpGet:
+          path: /
+          port: __DEV_SERVER_PORT__
+        initialDelaySeconds: 2
+        periodSeconds: 2
+        timeoutSeconds: 5
+        failureThreshold: 60
     - name: backup-sidecar
       image: ghcr.io/harshit-rv/forge-backup-sidecar:latest
       volumeMounts:

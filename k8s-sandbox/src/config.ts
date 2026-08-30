@@ -6,6 +6,8 @@ export const REACT_CONTAINER_NAME = 'react-app-container';
 export const WORKSPACE_DIR = '/workspace';
 export const PREVIEW_BASE_HOST = 'forge.harshitrv.com';
 
+export const DEV_SERVER_PORT = 5173;
+
 export function appNameFor(projectId: string): string {
   return `app-${projectId}`;
 }

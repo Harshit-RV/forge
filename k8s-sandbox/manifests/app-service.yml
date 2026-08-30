@@ -12,5 +12,5 @@ spec:
   ports:
     - name: http
       port: 80
-      targetPort: __TARGET_PORT__
+      targetPort: __DEV_SERVER_PORT__
       protocol: TCP

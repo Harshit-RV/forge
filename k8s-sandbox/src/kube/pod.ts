@@ -1,5 +1,5 @@
 import type { V1Pod } from '@kubernetes/client-node';
-import { NAMESPACE, podNameFor } from '../config';
+import { DEV_SERVER_PORT, NAMESPACE, podNameFor } from '../config';
 import { isNotFound } from './errors';
 import { getCore } from './client';
 import { loadManifest } from './manifest';
@@ -8,7 +8,10 @@ class K8Pod {
   static async create(projectId: string): Promise<string> {
     const core = getCore();
     const name = podNameFor(projectId);
-    const body = await loadManifest<V1Pod>('app-pod.yml', { PROJECT_ID: projectId });
+    const body = await loadManifest<V1Pod>('app-pod.yml', {
+      PROJECT_ID: projectId,
+      DEV_SERVER_PORT: String(DEV_SERVER_PORT),
+    });
     await core.createNamespacedPod({ namespace: NAMESPACE, body });
     return name;
   }

@@ -1,8 +1,8 @@
 import { podNameFor, previewUrl, serviceNameFor } from './config';
-import { runNpmInstall, startDevServer } from './workspace/process';
 import K8Service from './kube/service';
 import K8Pod from './kube/pod';
 import { isAlreadyExists } from './kube/errors';
+import WorkspaceService from './workspace';
 
 export type Sandbox = {
   projectId: string;
@@ -46,10 +46,12 @@ export async function create(projectId: string): Promise<Sandbox> {
     const name = await K8Pod.create(projectId);
     await K8Pod.waitForRunning(name);
 
-    await runNpmInstall(name);
-    const port = await startDevServer(name);
-    const svc = await K8Service.create(projectId, port);
-    await K8Service.waitForEndpoints(svc);
+    await WorkspaceService.runNpmInstall(name);
+    await WorkspaceService.startDevServer(name);
+
+    const svc = await K8Service.create(projectId);
+    await K8Service.waitForEndpoints(svc, 120_000);
+    
     return { projectId, previewUrl: previewUrl(projectId) };
   } catch (error) {
     // A 409 means a concurrent caller already created the pod. Don't destroy theirs.

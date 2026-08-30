@@ -1,16 +1,16 @@
 import type { V1Service } from '@kubernetes/client-node';
-import { NAMESPACE, serviceNameFor } from '../config';
+import { DEV_SERVER_PORT, NAMESPACE, serviceNameFor } from '../config';
 import { isNotFound } from './errors';
 import { getCore } from './client';
 import { loadManifest } from './manifest';
 
 class K8Service {
-  static async create(projectId: string, targetPort: number): Promise<string> {
+  static async create(projectId: string): Promise<string> {
     const core = getCore();
     const name = serviceNameFor(projectId);
     const body = await loadManifest<V1Service>('app-service.yml', {
       PROJECT_ID: projectId,
-      TARGET_PORT: String(targetPort),
+      DEV_SERVER_PORT: String(DEV_SERVER_PORT),
     });
     await core.createNamespacedService({ namespace: NAMESPACE, body });
     return name;

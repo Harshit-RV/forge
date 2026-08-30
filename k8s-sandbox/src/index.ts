@@ -1,4 +1,6 @@
-export { previewUrl, podNameFor, WORKSPACE_DIR } from './config';
+import WorkspaceService from './workspace';
+
+export { previewUrl, podNameFor, WORKSPACE_DIR, DEV_SERVER_PORT } from './config';
 
 export {
   create,
@@ -10,5 +12,8 @@ export {
 } from './sandbox';
 
 export { shell, exec, type ExecResult } from './kube/exec';
+
+export const restartDevServer = WorkspaceService.restartDevServer;
+export const devLogs = WorkspaceService.devLogs;
 
 export { isAlreadyExists, isNotFound } from './kube/errors';
